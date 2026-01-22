@@ -17,16 +17,25 @@ services:
       timeout: 3s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
   litellm:
     image: docker.litellm.ai/berriai/litellm:main-latest
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_started
     environment:
       GEMINI_API_KEY: ${GEMINI_API_KEY}
       LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY}
+      STORE_MODEL_IN_DB: ${STORE_MODEL_IN_DB}
       DATABASE_URL: ${DATABASE_URL}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
+      REDIS_URL: redis://redis:6379/0
     volumes:
       - ./litellm_config.yaml:/app/config.yaml:ro
     ports:
